@@ -6,9 +6,9 @@ class GitSourceTest extends FunSuite with Matchers {
 
   def currentRepoLog = GitSource.log(".")
 
-  test("initial commit is the first one") {
+  test("initial commit is the last one") {
 
-    val commit = currentRepoLog.head
+    val commit = currentRepoLog.last
     commit.message should startWith("initial commit")
   }
 
