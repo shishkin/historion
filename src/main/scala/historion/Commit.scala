@@ -17,9 +17,15 @@ case class FileStats(
   linesAdded: Int = 0,
   linesRemoved: Int = 0)
 
+case class Summary(
+  totalCommits: Int,
+  totalFiles: Int,
+  totalAuthors: Int,
+  fileChanges: Int)
+
 trait HistorySource {
 
-  def commits(): Iterable[Commit]
+  def commits(): Stream[Commit]
 
-  def fileStats(): Iterable[(Commit, FileStats)]
+  def fileStats(): Stream[(Commit, FileStats)]
 }

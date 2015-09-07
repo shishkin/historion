@@ -16,13 +16,13 @@ case class GitSource(repoDir: String) extends HistorySource {
 
   private[this] lazy val repo = Git.open(new File(repoDir)).getRepository
 
-  def commits(): Iterable[Commit] = for {
+  def commits(): Stream[Commit] = for {
     rev <- walkFromHead()
     c = commit(rev)
     _ = rev.disposeBody()
   } yield c
 
-  def fileStats(): Iterable[(Commit, FileStats)] = for {
+  def fileStats(): Stream[(Commit, FileStats)] = for {
     rev <- walkFromHead()
     c = commit(rev)
     d <- patch(rev)
@@ -30,11 +30,12 @@ case class GitSource(repoDir: String) extends HistorySource {
     _ = rev.disposeBody()
   } yield (c, stats)
 
-  private[this] def walkFromHead(): Iterable[RevCommit] = {
+  private[this] def walkFromHead(): Stream[RevCommit] = {
+
     val walk = new RevWalk(repo)
     val head = repo.resolve(Constants.HEAD)
     walk.markStart(walk.lookupCommit(head))
-    walk.asScala
+    walk.asScala.toStream
   }
 
   private[this] def commit(c: RevCommit): Commit =
