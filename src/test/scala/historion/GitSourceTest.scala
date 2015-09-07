@@ -4,31 +4,31 @@ import org.scalatest.{Matchers, FunSuite}
 
 class GitSourceTest extends FunSuite with Matchers {
 
-  def currentRepoLog = GitSource.log(".")
+  def currentRepo = GitSource(".")
+
+  def initialCommit = currentRepo.commits().last
 
   test("initial commit is the last one") {
 
-    val commit = currentRepoLog.last
-    commit.message should startWith("initial commit")
+    initialCommit.message should startWith("initial commit")
   }
+
 
   test("timezone is correct") {
 
-    val commit = currentRepoLog.last
-    commit.timestamp.getZone.getId should be ("GMT+08:00")
+    initialCommit.timestamp.getZone.getId should be ("GMT+08:00")
   }
 
   test("sha1 is valid") {
 
-    val commit = currentRepoLog.last
-    commit.id.value should fullyMatch regex """[0-9a-f]{40}""".r
+    initialCommit.id.value should fullyMatch regex """[0-9a-f]{40}""".r
   }
 
 
   test("file stats") {
 
-    val commit = currentRepoLog.last
-    val diff = GitSource.fileStats(".").filter(_._1 == commit).map(_._2)
+    val commit = initialCommit
+    val diff = currentRepo.fileStats().filter(_._1 == commit).map(_._2)
     val files = diff.map(_.path)
 
     files should contain theSameElementsAs List(

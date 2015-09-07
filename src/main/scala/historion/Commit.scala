@@ -16,3 +16,10 @@ case class FileStats(
   path: String,
   linesAdded: Int = 0,
   linesRemoved: Int = 0)
+
+trait HistorySource {
+
+  def commits(): Iterable[Commit]
+
+  def fileStats(): Iterable[(Commit, FileStats)]
+}

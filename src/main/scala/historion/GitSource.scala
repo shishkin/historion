@@ -5,14 +5,37 @@ import java.time.ZonedDateTime
 
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.diff.DiffFormatter
-import org.eclipse.jgit.lib.{Constants, Repository}
+import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.patch.FileHeader
 import org.eclipse.jgit.revwalk.{RevCommit, RevWalk}
 import org.eclipse.jgit.util.io.DisabledOutputStream
 
 import scala.collection.JavaConverters._
 
-trait GitSource {
+case class GitSource(repoDir: String) extends HistorySource {
+
+  private[this] lazy val repo = Git.open(new File(repoDir)).getRepository
+
+  def commits(): Iterable[Commit] = for {
+    rev <- walkFromHead()
+    c = commit(rev)
+    _ = rev.disposeBody()
+  } yield c
+
+  def fileStats(): Iterable[(Commit, FileStats)] = for {
+    rev <- walkFromHead()
+    c = commit(rev)
+    d <- patch(rev)
+    stats = fileStats(d)
+    _ = rev.disposeBody()
+  } yield (c, stats)
+
+  private[this] def walkFromHead(): Iterable[RevCommit] = {
+    val walk = new RevWalk(repo)
+    val head = repo.resolve(Constants.HEAD)
+    walk.markStart(walk.lookupCommit(head))
+    walk.asScala
+  }
 
   private[this] def commit(c: RevCommit): Commit =
     Commit(
@@ -26,18 +49,7 @@ trait GitSource {
       c.getAuthorIdent.getWhen.toInstant,
       c.getAuthorIdent.getTimeZone.toZoneId)
 
-  def log(repoDir: String): Stream[Commit] = {
-    val repo = Git.open(new File(repoDir))
-      .getRepository
-    val walk = new RevWalk(repo)
-    val head = repo.resolve(Constants.HEAD)
-    walk.markStart(walk.lookupCommit(head))
-    walk.asScala
-      .toStream
-      .map(commit)
-  }
-
-  private[this] def diff(repo: Repository, rev: RevCommit): Seq[FileHeader] = {
+  private[this] def patch(rev: RevCommit): Seq[FileHeader] = {
 
     val revTree = rev.getTree
     val parentTree = rev.getParents
@@ -56,25 +68,10 @@ trait GitSource {
     file.getHunks.asScala
       .flatMap(_.toEditList.asScala)
       .foldLeft(FileStats(file.getNewPath)) {
+
       (stats, edit) => stats.copy(
         linesAdded = stats.linesAdded + edit.getLengthB,
         linesRemoved = stats.linesRemoved + edit.getLengthA)
     }
   }
-
-  def fileStats(repoDir: String): Stream[(Commit, FileStats)] = {
-    val repo = Git.open(new File(repoDir))
-      .getRepository
-    val walk = new RevWalk(repo)
-    val head = repo.resolve(Constants.HEAD)
-    walk.markStart(walk.lookupCommit(head))
-    for {
-      rev <- walk.asScala.toStream
-      c = commit(rev)
-      d <- diff(repo, rev)
-      stats = fileStats(d)
-    } yield (c, stats)
-  }
 }
-
-object GitSource extends GitSource
