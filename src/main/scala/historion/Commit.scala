@@ -11,3 +11,8 @@ case class Commit(
   timestamp: ZonedDateTime,
   author: Author,
   message: String)
+
+case class FileStats(
+  path: String,
+  linesAdded: Int = 0,
+  linesRemoved: Int = 0)
