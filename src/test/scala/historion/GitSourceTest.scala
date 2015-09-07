@@ -14,13 +14,13 @@ class GitSourceTest extends FunSuite with Matchers {
 
   test("timezone is correct") {
 
-    val commit = currentRepoLog.head
+    val commit = currentRepoLog.last
     commit.timestamp.getZone.getId should be ("GMT+08:00")
   }
 
   test("sha1 is valid") {
 
-    val commit = currentRepoLog.head
+    val commit = currentRepoLog.last
     commit.id.value should fullyMatch regex """[0-9a-f]{40}""".r
   }
 }
