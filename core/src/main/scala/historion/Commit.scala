@@ -18,10 +18,10 @@ case class FileStats(
   linesRemoved: Int = 0)
 
 case class Summary(
-  totalCommits: Int,
-  totalFiles: Int,
-  totalAuthors: Int,
-  fileChanges: Int)
+  totalCommits: Long,
+  totalFiles: Long,
+  totalAuthors: Long,
+  fileChanges: Long)
 
 trait HistorySource {
 

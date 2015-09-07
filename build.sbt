@@ -14,3 +14,15 @@ lazy val core = project.settings(
     "org.eclipse.jgit" % "org.eclipse.jgit" % "4.0.1.201506240215-r",
     "org.scalatest" %% "scalatest" % "2.2.4" % "test")
 )
+
+lazy val spark = project.dependsOn(core).settings(
+
+  libraryDependencies ++= Seq(
+    "org.apache.spark" %% "spark-core" % "1.4.1"),
+
+  mainClass in Compile := Some("historion.Main"),
+
+  initialCommands in console := "import org.apache.spark._, historion._, Main._, SparkImplicits._",
+
+  fork in run := true
+)
