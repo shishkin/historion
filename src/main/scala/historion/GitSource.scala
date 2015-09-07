@@ -1,12 +1,14 @@
 package historion
 
+import org.eclipse.jgit.lib.Constants
+
 import scala.collection.JavaConverters._
 
 import java.io.File
 import java.time.ZonedDateTime
 
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.revwalk.RevCommit
+import org.eclipse.jgit.revwalk.{RevWalk, RevCommit}
 
 trait GitSource {
 
@@ -15,7 +17,7 @@ trait GitSource {
       Sha1(c.getId.name()),
       authoredTimestamp(c),
       Author(c.getAuthorIdent.getName),
-      c.getFullMessage)
+      c.getShortMessage)
 
   private[this] def authoredTimestamp(c: RevCommit): ZonedDateTime =
     ZonedDateTime.ofInstant(
@@ -23,12 +25,14 @@ trait GitSource {
       c.getAuthorIdent.getTimeZone.toZoneId)
 
   def log(repoDir: String): Stream[Commit] = {
-    val git = Git.open(new File(repoDir))
-    val command = git.log().all()
-    command
-      .call().asScala
-      .map(commit)
+    val repo = Git.open(new File(repoDir))
+      .getRepository
+    val walk = new RevWalk(repo)
+    val head = repo.resolve(Constants.HEAD)
+    walk.markStart(walk.lookupCommit(head))
+    walk.asScala
       .toStream
+      .map(commit)
   }
 }
 
