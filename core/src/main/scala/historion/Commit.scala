@@ -2,6 +2,8 @@ package historion
 
 import java.time.ZonedDateTime
 
+import scala.collection.GenSeq
+
 case class Sha1(value: String)
 
 case class Author(name: String)
@@ -25,7 +27,7 @@ case class Summary(
 
 trait HistorySource {
 
-  def commits(): Stream[Commit]
+  def commits(): GenSeq[Commit]
 
-  def fileStats(): Stream[(Commit, FileStats)]
+  def fileStats(): GenSeq[(Commit, FileStats)]
 }
