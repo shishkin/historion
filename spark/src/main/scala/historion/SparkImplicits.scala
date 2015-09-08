@@ -3,14 +3,15 @@ package historion
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 
+import scala.collection.GenSeq
 import scala.reflect.ClassTag
 
 object SparkImplicits {
 
-  implicit class SeqOps[T: ClassTag](xs: Seq[T]) {
+  implicit class SeqOps[T: ClassTag](xs: GenSeq[T]) {
 
     def toRdd()(implicit sc: SparkContext): RDD[T] =
-      sc.parallelize(xs)
+      sc.parallelize(xs.seq)
   }
 
   implicit class FileStatsOps(xs: RDD[(Commit, FileStats)]) {

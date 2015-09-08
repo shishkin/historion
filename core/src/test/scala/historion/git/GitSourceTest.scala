@@ -1,4 +1,4 @@
-package historion
+package historion.git
 
 import org.scalatest.{FunSuite, Matchers}
 

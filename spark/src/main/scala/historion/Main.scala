@@ -1,5 +1,6 @@
 package historion
 
+import historion.git.GitSource
 import org.apache.spark.SparkContext
 
 object Main {
